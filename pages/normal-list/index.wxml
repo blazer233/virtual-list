@@ -1,0 +1,8 @@
+<view class="page">
+  <view wx:for="{{list}}" wx:for-index="index" wx:for-item="listItem" wx:key="index">
+    <view class="box-all">
+      <view class="box-title">{{listItem.title}}--第{{pageIndex}}页</view>
+      <view class="box-ctx">{{listItem.content}}</view>
+    </view>
+  </view>
+</view>

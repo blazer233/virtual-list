@@ -1,0 +1,30 @@
+{
+    "setting": {},
+    "condition": {
+        "plugin": {
+            "list": []
+        },
+        "game": {
+            "list": []
+        },
+        "gamePlugin": {
+            "list": []
+        },
+        "miniprogram": {
+            "list": [
+                {
+                    "name": "pages/normal-list/index",
+                    "pathName": "pages/normal-list/index",
+                    "query": "",
+                    "scene": null
+                },
+                {
+                    "name": "pages/virtual-list/index",
+                    "pathName": "pages/virtual-list/index",
+                    "query": "",
+                    "scene": null
+                }
+            ]
+        }
+    }
+}

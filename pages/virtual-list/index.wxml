@@ -1,0 +1,13 @@
+<view class="page">
+  <view wx:for="{{list}}" id="wrp_{{index}}" wx:key="index">
+    <view wx:if="{{ item.length > 0 }}">
+      <view wx:for="{{ item }}" wx:for-item="listItem" wx:for-index="sindex" wx:key="sindex">
+        <view class="box-all">
+          <view class="box-title">{{listItem.title}}--第{{index}}页</view>
+          <view class="box-ctx">{{listItem.content}}</view>
+        </view>
+      </view>
+    </view>
+    <view wx:else style="height: {{ item.height}}px"></view>
+  </view>
+</view>

@@ -1,0 +1,18 @@
+<view class="container">
+  <scroll-view class="lsmap" id="screenSee" scroll-y bindscrolltolower="bindscrolltolower" bindscroll="bindscroll">
+    <view style="height: {{ headerHeight }}px;"></view>
+    <view wx:for="{{pageList}}" wx:if="{{item.visible}}" wx:key="index" id="listPageId{{index}}">
+      <block wx:for="{{item.data}}" wx:key="id" wx:for-item="qItem" wx:for-index="qIndex">
+        <view class="faqItemMap">
+          <view class="ellipsis2 faqsItemTitle">{{qItem.title}}</view>
+          <view class="faqsContent">
+            <view class="ellipsis3 faqsDes">
+              <text class="qname">{{qItem.content}}</text>
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+    <view style=" height: {{bottomHeight}}px;"></view>
+  </scroll-view>
+</view>

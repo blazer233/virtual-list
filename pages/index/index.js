@@ -14,11 +14,6 @@ Page({
       //   height: 0, // 高度
       //   bottom:0, // 底部在scroll里的高度
       // }
-    ],
-    pageHeight: [
-      // 每一页高度
-      // {
-      // }
     ]
   },
   onLoad() {
@@ -40,6 +35,14 @@ Page({
   // 滚动
   bindscroll(e) {
     // 实现虚拟列表
+    let cur = 0;
+    for (let i = this.data.pageList.length - 1; i > 0; i--) {
+      if (this.data.pageList[i].bottom < e.detail.scrollTop) {
+        cur = i;
+        console.log(cur);
+      }
+    }
+    console.log(e.detail, this.data.pageList);
     this.data.pageList.forEach((item, index) => {
       // 手指上滑
       if (
@@ -48,15 +51,15 @@ Page({
         this.data.pageList[index].visible &&
         this.data.pageList[index + 2]
       ) {
-        console.warn(111);
         // 隐藏头部
         this.data.pageList[index].visible = false;
-        this.data.headerHeight += item.height;
+        this.data.headerHeight = this.data.headerHeight + item.height;
         // 显示底部
         if (!this.data.pageList[index + 2].visible) {
           console.warn(222);
           this.data.pageList[index + 2].visible = true;
-          this.data.bottomHeight -= this.data.pageList[index + 2].height;
+          this.data.bottomHeight =
+            this.data.bottomHeight - this.data.pageList[index + 2].height;
         }
         this.setData({
           pageList: this.data.pageList,
@@ -89,17 +92,11 @@ Page({
       }
       // wx.createIntersectionObserver()
       //   .relativeTo(".lsmap")
-      //   .observe(`#wrp_${pageIndex}`, res => {
+      //   .observe(`#listPageId${pageIndex}`, res => {
       //     console.log(res.intersectionRatio, this.pageHeightArr);
-      //     if (res.intersectionRatio > 0) {
-      //       this.setData({
-      //         [`list[${pageIndex}]`]: this.data.allList[pageIndex]
-      //       });
-      //     } else {
-      //       this.setData({
-      //         [`list[${pageIndex}]`]: { height: this.pageHeightArr[pageIndex] }
-      //       });
-      //     }
+      //     this.setData({
+      //       [`pageList[${pageIndex}].visible`]: res.intersectionRatio > 0
+      //     });
       //   });
     });
   },

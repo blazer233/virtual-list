@@ -31,42 +31,63 @@ Page({
   bindscrolltolower() {
     this.getSearch();
   },
-
-  // 滚动
-  bindscroll(e) {
-    // 实现虚拟列表
-    let cur = 0;
-    for (let i = this.data.pageList.length - 1; i > 0; i--) {
-      if (this.data.pageList[i].bottom < e.detail.scrollTop) {
-        cur = i;
-        console.log(cur);
+  _curSearch(scrollTop, isSort) {
+    let left = 0;
+    let right = this.data.pageList.length;
+    while (left <= right) {
+      var center = Math.floor((left + right) / 2);
+      if (
+        isSort
+          ? scrollTop < this.data.pageList[center].bottom
+          : this.data.pageList[center].top > scrollTop + this.scrollH
+      ) {
+        right = center - 1;
+      } else {
+        left = center + 1;
       }
     }
-    console.log(e.detail, this.data.pageList);
-    this.data.pageList.forEach((item, index) => {
-      // 手指上滑
+    return left;
+  },
+  // 滚动
+  bindscroll(e) {
+    console.log(e.detail.scrollTop);
+    // 实现虚拟列表
+    // let _key = this._curSearch(e.detail.scrollTop, e.detail.deltaY < 0);
+    // if (_key != this._indexcur) {
+    //   console.warn(this._indexcur, 2333);
+    //   this._indexcur = _key;
+    //   wx.createIntersectionObserver()
+    //     .relativeTo(".lsmap")
+    //     .observe(`#listPageId${this._indexcur}`, res => {
+    //       console.warn(this._indexcur, res.intersectionRatio, 2333);
+    //       this.setData({
+    //         [`pageList[${this._indexcur}].visible`]: res.intersectionRatio > 0
+    //       });
+    //     });
+    // }
+    for (let index = 0; index < this.data.pageList.length; index++) {
+      const item = this.data.pageList[index];
       if (
         e.detail.deltaY < 0 &&
-        item.bottom < e.detail.scrollTop &&
+        e.detail.scrollTop > item.bottom &&
         this.data.pageList[index].visible &&
         this.data.pageList[index + 2]
       ) {
-        // 隐藏头部
-        this.data.pageList[index].visible = false;
-        this.data.headerHeight = this.data.headerHeight + item.height;
-        // 显示底部
+        // 手指上滑 且 数据被加载
+        this.data.pageList[index].visible = false; // 第一行隐藏头部
+        this.data.headerHeight = this.data.headerHeight + item.height; //计算总的需要被隐藏的头部
         if (!this.data.pageList[index + 2].visible) {
-          console.warn(222);
+          // 手指上滑，且上滑的数据是已加载但未显示的
           this.data.pageList[index + 2].visible = true;
           this.data.bottomHeight =
-            this.data.bottomHeight - this.data.pageList[index + 2].height;
+            this.data.bottomHeight - this.data.pageList[index + 2].height; //计算剩余需要被隐藏的底部
         }
         this.setData({
           pageList: this.data.pageList,
           headerHeight: this.data.headerHeight,
           bottomHeight: this.data.bottomHeight
         });
-        return;
+        break;
       }
       // 手指下滑
       if (
@@ -81,52 +102,53 @@ Page({
         if (!this.data.pageList[index - 2].visible) {
           // 显示底部
           this.data.pageList[index - 2].visible = true;
-          this.data.headerHeight -= this.data.pageList[index - 2].height;
+          this.data.headerHeight =
+            this.data.headerHeight - this.data.pageList[index - 2].height;
         }
         this.setData({
           pageList: this.data.pageList,
           headerHeight: this.data.headerHeight,
           bottomHeight: this.data.bottomHeight
         });
-        return;
+        break;
       }
-      // wx.createIntersectionObserver()
-      //   .relativeTo(".lsmap")
-      //   .observe(`#listPageId${pageIndex}`, res => {
-      //     console.log(res.intersectionRatio, this.pageHeightArr);
-      //     this.setData({
-      //       [`pageList[${pageIndex}].visible`]: res.intersectionRatio > 0
-      //     });
-      //   });
-    });
+    }
   },
   // 搜索
   getSearch() {
-    if (this.data.isLoading) return;
     wx.showLoading({ title: "加载中", mask: true });
-    this.data.isLoading = true;
-    // 这里可以换成接口请求得到的数据
     setTimeout(() => {
-      this.data.isLoading = false;
       wx.hideLoading();
-      if (listData.length > 0) {
-        this.data.pageList.push({
-          data: listData, //数据
-          visible: true, // 当前是否显示
-          top: 0, // 顶部在scroll里的高度
-          height: this.data.virtualHeight || 0, // 高度
-          bottom: this.data.virtualHeight || 0 // 底部在scroll里的高度
-        });
-      }
-      console.log(this.data.pageList);
+
+      this.data.pageList.push({
+        data: +new Date() % 2 ? listData.slice(0, 3) : listData, //数据
+        visible: true, // 当前是否显示
+        top: 0, // 顶部在scroll里的高度
+        height: this.data.virtualHeight || 0, // 高度
+        bottom: this.data.virtualHeight || 0 // 底部在scroll里的高度
+      });
       this.setData(
         {
           pageList: this.data.pageList
         },
-        () => {
-          this.initPageHeight();
-        }
+        () => this.initPageHeight()
       );
+
+      // let data = this.data.current % 2 ? listData.slice(0, 3) : listData;
+      // this.setData(
+      //   {
+      //     [`pageList[${this.data.current}]`]: {
+      //       data, //数据
+      //       visible: true, // 当前是否显示
+      //       top: 0, // 顶部在scroll里的高度
+      //       height: this.data.virtualHeight || 0, // 高度
+      //       bottom: this.data.virtualHeight || 0 // 底部在scroll里的高度
+      //     }
+      //   },
+      //   () => {
+      //     this.initPageHeight();
+      //   }
+      // );
     }, 500);
   },
   // 初始化首页高度
@@ -148,7 +170,6 @@ Page({
         }
         pageList[cur].height = res[0].height;
         // 顶部在scroll里的高度
-        console.log(this.data.pageList, cur);
         this.data.current++;
         this.setData({ pageList });
       });

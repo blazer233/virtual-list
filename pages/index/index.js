@@ -4,7 +4,7 @@ Page({
   data: {
     current: 0,
     size: 10,
-    headerHeight: 0,
+    topHeight: 0,
     bottomHeight: 0,
     pageList: [
       // {
@@ -17,6 +17,16 @@ Page({
     ]
   },
   onLoad() {
+    /**
+     * 1、找到列表外层的scroll-view并计算高度
+     * 2、拿到数据之后计算每一页的高度、顶部的scroll距离、底部的scroll距离
+     * 3、滚动时手指上滑如果当前页面可见，且往下两个页面也加载出来时(判定此时页面在向后的第一或第二页面，此时隐藏当前页面)
+     *      计算列表向上滚动的总距离，用topHeight表示(累加下划时页面向上滚动后被隐藏页对应高度)
+     *      如果滚动出现的页面是被隐藏的，则bottomHeight累减出现的页面对应高度（非下拉加载）
+     * 4、滚动时手指下滑如果当前页面可见，且往上两个页面也加载出来时(判定此时页面在向前的第一或第二页面，此时隐藏当前页面)
+     *      计算列表向下滚动的总距离，用bottomHeight表示(累加上划时页面向下滚动后被隐藏页对应高度)
+     *      如果滚动出现的页面是被隐藏的，则topHeight累减出现的页面对应高度（非上拉加载）
+     */
     this.getSearch();
     const query = wx.createSelectorQuery();
     query
@@ -75,7 +85,7 @@ Page({
       ) {
         // 手指上滑 且 数据被加载
         this.data.pageList[index].visible = false; // 第一行隐藏头部
-        this.data.headerHeight = this.data.headerHeight + item.height; //计算总的需要被隐藏的头部
+        this.data.topHeight = this.data.topHeight + item.height; //计算总的需要被隐藏的头部
         if (!this.data.pageList[index + 2].visible) {
           // 手指上滑，且上滑的数据是已加载但未显示的
           this.data.pageList[index + 2].visible = true;
@@ -84,7 +94,7 @@ Page({
         }
         this.setData({
           pageList: this.data.pageList,
-          headerHeight: this.data.headerHeight,
+          topHeight: this.data.topHeight,
           bottomHeight: this.data.bottomHeight
         });
         break;
@@ -93,7 +103,7 @@ Page({
       if (
         e.detail.deltaY > 0 &&
         item.top > e.detail.scrollTop + this.scrollH &&
-        this.data.pageList[index].visible == true &&
+        this.data.pageList[index].visible &&
         this.data.pageList[index - 2]
       ) {
         // 隐藏头部
@@ -102,12 +112,12 @@ Page({
         if (!this.data.pageList[index - 2].visible) {
           // 显示底部
           this.data.pageList[index - 2].visible = true;
-          this.data.headerHeight =
-            this.data.headerHeight - this.data.pageList[index - 2].height;
+          this.data.topHeight =
+            this.data.topHeight - this.data.pageList[index - 2].height;
         }
         this.setData({
           pageList: this.data.pageList,
-          headerHeight: this.data.headerHeight,
+          topHeight: this.data.topHeight,
           bottomHeight: this.data.bottomHeight
         });
         break;

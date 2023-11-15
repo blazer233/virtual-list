@@ -1,5 +1,5 @@
 <view class="page">
-  <scroll-view class="lsmap" id="screenSee" scroll-y bindscrolltolower="getVideoInfoData" bindscroll="bindscroll">
+  <scroll-view class="lsmap" id="screenSee" scroll-y bindscrolltolower="getVideoInfoData">
     <view wx:for="{{list}}" id="wrp_{{index}}" wx:key="index">
       <view wx:if="{{ item.length > 0 }}">
         <view wx:for="{{ item }}" wx:for-item="listItem" wx:for-index="sindex" wx:key="sindex">

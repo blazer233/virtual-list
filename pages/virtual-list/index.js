@@ -1,90 +1,94 @@
-const listData = require("../../static/data.js");
+const listData = require('../../static/data.js');
+
 Page({
   /**
    * 页面的初始数据
    */
   data: {
     list: [],
-    allList: []
   },
   onLoad() {
-    /**
-     * 1、将列表通过每次请求为一页转为嵌套数组
-     * 2、setData之后异步计算每次渲染的页面高度
-     * 3、通过API relativeToViewport检测是否在可视区域内的，如果该页面出现在可视区域内
-     *    则从嵌套列表中取出对应的数据渲染到视图，如果没有出现在可视区间内用空白div填充
-     *    并设置对应页面的高度
-     *
-     * 只有可视区域内的div渲染高度，隐藏的div用空白填充高度
-     */
-    this.pageIndex = 0;
+    this.wholePageIndex = 0;
+    this.wholeVideoList = [];
+    this.currentRenderIndex = 0;
+    this.index = 0;
     this.pageHeightArr = [];
-    wx.getSystemInfo({
-      success: res => {
-        let { windowHeight } = res;
-        this.windowHeight = windowHeight;
-      }
-    });
-    this.data.allList[this.pageIndex] = listData;
-    this.setData({ [`list[${this.pageIndex}]`]: listData }, () => {
-      this.setHeight();
-    });
-  },
 
-  onUnload() {
-    console.log(this._observer);
-    if (this._observer) this._observer.disconnect();
-  },
-  setHeight() {
-    wx.createSelectorQuery()
-      .select(`#wrp_${this.pageIndex}`)
+    const query = wx.createSelectorQuery();
+    query
+      .select('#screenSee')
       .boundingClientRect()
       .exec(res => {
-        this.pageHeightArr[this.pageIndex] = res[0] && res[0].height;
+        this.windowHeight = res[0].height;
       });
-    this.observePage(this.pageIndex);
+
+    this.wholeVideoList[this.wholePageIndex] = listData;
+    this.setData({ [`list[${this.wholePageIndex}]`]: listData }, () =>
+      this.setHeight()
+    );
   },
 
-  observePage(pageIndex) {
-    console.log(pageIndex); //每一屏渲染完成后，监听当前这一屏是否在可视区域内
-    this._observer = wx
-      .createIntersectionObserver()
-      .relativeToViewport({
-        top: 2 * this.windowHeight,
-        bottom: 2 * this.windowHeight
-      })
-      .observe(`#wrp_${pageIndex}`, res => {
-        console.log(res.intersectionRatio);
-        if (res.intersectionRatio <= 0) {
-          // 未出现在可视区域
-          this.setData({
-            [`list[${pageIndex}]`]: { height: this.pageHeightArr[pageIndex] }
-          });
+  setHeight() {
+    const wholePageIndex = this.wholePageIndex;
+    this.query = wx.createSelectorQuery();
+    this.query.select(`#wrp_${wholePageIndex}`).boundingClientRect();
+    this.query.exec(res => {
+      this.pageHeightArr[wholePageIndex] = res[0] && res[0].height;
+    });
+  },
+
+  bindscroll(e) {
+    // 滚动的时候需要实时去计算当然应该在哪一屏幕
+    let tempScrollTop = 0;
+    const wholePageIndex = this.wholePageIndex;
+    for (var i = 0; i < this.pageHeightArr.length; i++) {
+      tempScrollTop = tempScrollTop + this.pageHeightArr[i];
+      if (tempScrollTop > e.detail.scrollTop + this.windowHeight) {
+        console.log('set this.computedCurrentIndex' + i);
+        this.computedCurrentIndex = i;
+        break;
+      }
+    }
+    const currentRenderIndex = this.currentRenderIndex;
+    if (this.computedCurrentIndex !== currentRenderIndex) {
+      // 这里给不渲染的元素占位
+      let tempList = new Array(wholePageIndex + 1).fill(0);
+      tempList.forEach((item, index) => {
+        if (
+          this.computedCurrentIndex - 1 <= index &&
+          index <= this.computedCurrentIndex + 1
+        ) {
+          tempList[index] = this.wholeVideoList[index];
         } else {
-          // 出现在可视区域
-          this.setData({
-            [`list[${pageIndex}]`]: this.data.allList[pageIndex]
-          });
+          tempList[index] = { height: this.pageHeightArr[index] };
         }
       });
+
+      this.currentRenderIndex = this.computedCurrentIndex;
+      // 渲染第一屏的时候，如果之前这里有看到这里，并且showVideoIcon，那么需要重新绑定一次。
+
+      this.setData({ list: tempList });
+    }
   },
 
   getVideoInfoData() {
-    wx.showLoading({ title: "加载中", mask: true });
-    setTimeout(() => {
-      wx.hideLoading();
-      let loadList = this.pageIndex % 2 ? listData : listData.slice(0, 3);
-      this.pageIndex = this.pageIndex + 1;
-      this.data.allList[this.pageIndex] = loadList;
-      this.setData({ [`list[${this.pageIndex}]`]: listData }, () => {
-        this.setHeight();
+    this.wholePageIndex = this.wholePageIndex + 1;
+    const wholePageIndex = this.wholePageIndex;
+    this.currentRenderIndex = wholePageIndex;
+    this.wholeVideoList[wholePageIndex] = listData;
+    let datas = { [`list[${wholePageIndex}]`]: listData };
+    let tempList = new Array(wholePageIndex + 1).fill(0);
+    if (wholePageIndex > 2) {
+      tempList.forEach((item, index) => {
+        if (index < tempList.length - 2) {
+          tempList[index] = { height: this.pageHeightArr[index] };
+        } else {
+          tempList[index] = this.wholeVideoList[index];
+        }
       });
-    }, 500);
+      datas.list = tempList;
+    }
+
+    this.setData(datas, () => this.setHeight());
   },
-  /**
-   * 页面下拉触底事件的处理函数
-   */
-  onReachBottom() {
-    this.getVideoInfoData();
-  }
 });

@@ -1,4 +1,4 @@
-const listData = require('../../static/data.js');
+import { mockData } from "../../static/data";
 
 Page({
   /**
@@ -22,8 +22,8 @@ Page({
         this.windowHeight = res[0].height;
       });
 
-    this.wholeVideoList[this.wholePageIndex] = listData;
-    this.setData({ [`list[${this.wholePageIndex}]`]: listData }, () =>
+    this.wholeVideoList[this.wholePageIndex] = mockData;
+    this.setData({ [`list[${this.wholePageIndex}]`]: mockData }, () =>
       this.setHeight()
     );
   },
@@ -75,8 +75,8 @@ Page({
     this.wholePageIndex = this.wholePageIndex + 1;
     const wholePageIndex = this.wholePageIndex;
     this.currentRenderIndex = wholePageIndex;
-    this.wholeVideoList[wholePageIndex] = listData;
-    let datas = { [`list[${wholePageIndex}]`]: listData };
+    this.wholeVideoList[wholePageIndex] = mockData;
+    let datas = { [`list[${wholePageIndex}]`]: mockData };
     let tempList = new Array(wholePageIndex + 1).fill(0);
     if (wholePageIndex > 2) {
       tempList.forEach((item, index) => {

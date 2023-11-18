@@ -1,4 +1,5 @@
-const listData = require('../../static/data.js');
+import { Timer, mockData } from '../../static/data';
+
 Page({
   /**
    * 页面的初始数据
@@ -26,10 +27,7 @@ Page({
       .exec(res => {
         this.windowHeight = res[0].height;
       });
-    this.data.allList[this.pageIndex] = listData;
-    this.setData({ [`list[${this.pageIndex}]`]: listData }, () => {
-      this.setHeight();
-    });
+    this.getSearch();
   },
 
   onUnload() {
@@ -70,12 +68,15 @@ Page({
       });
   },
 
-  getVideoInfoData() {
-    let loadList = this.pageIndex % 2 ? listData : listData.slice(0, 3);
-    this.pageIndex = this.pageIndex + 1;
-    this.data.allList[this.pageIndex] = loadList;
-    this.setData({ [`list[${this.pageIndex}]`]: listData }, () => {
-      this.setHeight();
-    });
+  getSearch() {
+    wx.showLoading({ title: '加载中', mask: true });
+    setTimeout(() => {
+      wx.hideLoading();
+      this.pageIndex = this.pageIndex + 1;
+      this.data.allList[this.pageIndex] = mockData;
+      this.setData({ [`list[${this.pageIndex}]`]: mockData }, () => {
+        this.setHeight();
+      });
+    }, Timer);
   },
 });

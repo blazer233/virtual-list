@@ -1,6 +1,7 @@
+import { Timer, mockData } from '../../static/data';
+
 // pages/index/zx/search.js
-const listData = require('../../static/data.js');
-const exPageNum = 2;
+const exPageNum = 4;
 Page({
   data: {
     current: 0,
@@ -95,19 +96,23 @@ Page({
   },
   // 搜索
   getSearch() {
-    this.data.pageList.push({
-      data: +new Date() % 2 ? listData.slice(0, 3) : listData, //数据
-      visible: true, // 当前是否显示
-      top: 0, // 顶部在scroll里的高度
-      height: this.data.virtualHeight || 0, // 高度
-      bottom: this.data.virtualHeight || 0, // 底部在scroll里的高度
-    });
-    this.setData(
-      {
-        pageList: this.data.pageList,
-      },
-      () => this.initPageHeight()
-    );
+    wx.showLoading({ title: '加载中', mask: true });
+    setTimeout(() => {
+      wx.hideLoading();
+      this.data.pageList.push({
+        data: mockData, //数据
+        visible: true, // 当前是否显示
+        top: 0, // 顶部在scroll里的高度
+        height: this.data.virtualHeight || 0, // 高度
+        bottom: this.data.virtualHeight || 0, // 底部在scroll里的高度
+      });
+      this.setData(
+        {
+          pageList: this.data.pageList,
+        },
+        () => this.initPageHeight()
+      );
+    }, Timer);
   },
   // 初始化首页高度
   initPageHeight() {
